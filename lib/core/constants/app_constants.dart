@@ -39,4 +39,12 @@ class AppStrings {
   static const String permissionDenied = 'Camera permission denied';
   static const String noCameraFound = 'No camera found';
   static const String cameraError = 'Camera error occurred';
+
+  // ML Inference
+  static const String startInference = 'Start AI';
+  static const String stopInference = 'Stop AI';
+  static const String inferenceActive = 'AI Active';
+  static const String inferenceInactive = 'AI Inactive';
+  static const String prediction = 'Prediction';
+  static const String confidence = 'Confidence';
 }

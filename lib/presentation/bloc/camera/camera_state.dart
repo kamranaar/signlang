@@ -25,33 +25,48 @@ class CameraReady extends CameraState {
   final List<CameraInfo> availableCameras;
   final int currentCameraIndex;
   final bool isPreviewActive;
+  final String? lastPrediction;
+  final double? lastConfidence;
+  final bool isInferenceActive;
   
   const CameraReady({
     required this.controller,
     required this.availableCameras,
     required this.currentCameraIndex,
     this.isPreviewActive = true,
+    this.lastPrediction,
+    this.lastConfidence,
+    this.isInferenceActive = false,
   });
   
-  @override
-  List<Object> get props => [
+   @override
+  List<Object?> get props => [
     controller,
     availableCameras,
     currentCameraIndex,
     isPreviewActive,
+    lastPrediction,
+    lastConfidence,
+    isInferenceActive,
   ];
   
-  CameraReady copyWith({
+   CameraReady copyWith({
     CameraController? controller,
     List<CameraInfo>? availableCameras,
     int? currentCameraIndex,
     bool? isPreviewActive,
+    String? lastPrediction,
+    double? lastConfidence,
+    bool? isInferenceActive,
   }) {
     return CameraReady(
       controller: controller ?? this.controller,
       availableCameras: availableCameras ?? this.availableCameras,
       currentCameraIndex: currentCameraIndex ?? this.currentCameraIndex,
       isPreviewActive: isPreviewActive ?? this.isPreviewActive,
+      lastPrediction: lastPrediction ?? this.lastPrediction,
+      lastConfidence: lastConfidence ?? this.lastConfidence,
+      isInferenceActive: isInferenceActive ?? this.isInferenceActive,
     );
   }
 }

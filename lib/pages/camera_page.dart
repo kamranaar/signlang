@@ -250,10 +250,85 @@ class _CameraPageState extends State<CameraPage> {
             ),
             
             // Camera preview
+            // Camera preview
             Expanded(
-              child: CameraPreviewWidget(
-                controller: state.controller,
-                showOverlay: state.isPreviewActive,
+              child: Stack(
+                children: [
+                  CameraPreviewWidget(
+                    controller: state.controller,
+                    showOverlay: state.isPreviewActive,
+                  ),
+                  
+                  // ML Prediction Overlay
+                  if (state.lastPrediction != null && state.lastConfidence != null)
+                    Positioned(
+                      top: 20,
+                      left: 20,
+                      right: 20,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black87,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.psychology,
+                              color: state.lastConfidence! > 0.7 
+                                  ? Colors.green 
+                                  : Colors.orange,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    state.lastPrediction!.toUpperCase(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Confidence: ${(state.lastConfidence! * 100).toStringAsFixed(1)}%',
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (state.isInferenceActive)
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: Colors.green,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             

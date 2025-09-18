@@ -1,11 +1,13 @@
 import 'package:get_it/get_it.dart';
 import '../../presentation/bloc/camera/camera_bloc.dart';
+import '../../services/tflite_service.dart';
 
 final sl = GetIt.instance;
 
 Future<void> setupDependencyInjection() async {
-  // BLoCs
-  sl.registerFactory(() => CameraBloc());
+  // Services
+  sl.registerLazySingleton<TfliteService>(() => TfliteService());
   
-  // Future: Add ML services, repositories, etc.
+  // BLoCs
+  sl.registerFactory(() => CameraBloc(sl<TfliteService>()));
 }
