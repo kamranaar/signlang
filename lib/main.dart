@@ -3,14 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bloc/bloc.dart';
 import 'core/di/injection_container.dart';
 import 'core/theme/app_theme.dart';
-//import 'bloc_observer.dart'; // i commented this out for now as this is giving error
+import 'bloc_observer.dart'; // i commented this out for now as this is giving error
 import 'app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Setup BLoC observer for debugging
-  //Bloc.observer = SimpleBlocObserver(); // Uncomment if BlocObserver is defined
+  Bloc.observer = SimpleBlocObserver(); // Uncomment if BlocObserver is defined
   
   // Setup dependency injection
   await setupDependencyInjection();

@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class CameraEvent extends Equatable {
@@ -27,3 +28,48 @@ class HandleCameraError extends CameraEvent {
   @override
   List<Object> get props => [error];
 }
+
+class StartInference extends CameraEvent {}
+
+class StopInference extends CameraEvent {}
+
+class ProcessCameraFrame extends CameraEvent {
+  final CameraImage image;
+  
+  const ProcessCameraFrame(this.image);
+  
+  @override
+  List<Object> get props => [image];
+}
+
+class SaveCurrentPrediction extends CameraEvent {
+  final String label;
+  final double confidence;
+  
+  const SaveCurrentPrediction({
+    required this.label,
+    required this.confidence,
+  });
+  
+  @override
+  List<Object> get props => [label, confidence];
+}
+
+class CorrectPrediction extends CameraEvent {
+  final String recognitionId;
+  final String originalLabel;
+  final String correctedLabel;
+  final String? feedback;
+  
+  const CorrectPrediction({
+    required this.recognitionId,
+    required this.originalLabel,
+    required this.correctedLabel,
+    this.feedback,
+  });
+  
+  @override
+  List<Object?> get props => [recognitionId, originalLabel, correctedLabel, feedback];
+}
+
+class ClearPredictionHistory extends CameraEvent {}

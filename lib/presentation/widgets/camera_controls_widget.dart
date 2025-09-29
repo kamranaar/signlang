@@ -25,7 +25,7 @@ class CameraControlsWidget extends StatelessWidget {
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
+             children: [
               // Switch Camera Button
               if (state is CameraReady && state.availableCameras.length > 1)
                 _buildControlButton(
@@ -34,12 +34,29 @@ class CameraControlsWidget extends StatelessWidget {
                   onPressed: () => context.read<CameraBloc>().add(SwitchCamera()),
                 ),
               
-              // Capture Frame Button (Day 3-4)
-              _buildControlButton(
-                icon: Icons.camera_alt,
-                label: AppStrings.captureFrame,
-                onPressed: () => context.read<CameraBloc>().add(CaptureFrame()),
-              ),
+              // Save Prediction Button
+              if (state is CameraReady && 
+                  state.lastPrediction != null && 
+                  state.lastConfidence != null)
+                _buildControlButton(
+                  icon: state.isSavingData ? Icons.hourglass_empty : Icons.save,
+                  label: state.isSavingData ? 'Saving...' : 'Save',
+                  onPressed: state.isSavingData ? null : () => 
+                    context.read<CameraBloc>().add(SaveCurrentPrediction(
+                      label: state.lastPrediction!,
+                      confidence: state.lastConfidence!,
+                    )),
+                ),
+              
+              // Inference Toggle Button
+              if (state is CameraReady)
+                _buildControlButton(
+                  icon: state.isInferenceActive ? Icons.stop : Icons.play_arrow,
+                  label: state.isInferenceActive ? 'Stop AI' : 'Start AI',
+                  onPressed: () => context.read<CameraBloc>().add(
+                    state.isInferenceActive ? StopInference() : StartInference(),
+                  ),
+                ),
               
               // Close Button
               _buildControlButton(

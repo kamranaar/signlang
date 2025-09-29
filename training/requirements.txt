@@ -1,0 +1,8 @@
+tensorflow>=2.13.0
+tensorflow-lite-model-maker>=0.4.2
+numpy>=1.24.3
+pillow>=10.0.0
+opencv-python>=4.8.0
+scikit-learn>=1.3.0
+matplotlib>=3.7.1
+seaborn>=0.12.2

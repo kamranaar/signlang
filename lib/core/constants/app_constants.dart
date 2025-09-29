@@ -39,4 +39,21 @@ class AppStrings {
   static const String permissionDenied = 'Camera permission denied';
   static const String noCameraFound = 'No camera found';
   static const String cameraError = 'Camera error occurred';
+
+  // ML Inference
+  static const String startInference = 'Start AI';
+  static const String stopInference = 'Stop AI';
+  static const String inferenceActive = 'AI Active';
+  static const String inferenceInactive = 'AI Inactive';
+  static const String prediction = 'Prediction';
+  static const String confidence = 'Confidence';
+
+  // History & Data
+  static const String recognitionHistory = 'Recognition History';
+  static const String trainingData = 'Training Data';
+  static const String exportData = 'Export Data';
+  static const String correctThis = 'Correct This';
+  static const String saveCorrection = 'Save Correction';
+  static const String feedback = 'Feedback';
+  static const String noHistoryMessage = 'No history yet';
 }
