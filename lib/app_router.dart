@@ -6,6 +6,8 @@ import 'presentation/bloc/camera/camera_bloc.dart';
 import 'pages/home_page.dart';
 import 'pages/camera_page.dart';
 import 'pages/result_page.dart';
+import 'presentation/bloc/history/history_bloc.dart';
+
 
 final GoRouter appRouter = GoRouter(
   routes: [
@@ -25,7 +27,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/result',
       name: 'result',
-      builder: (context, state) => const ResultPage(),
+      builder: (context, state) => BlocProvider(
+        create: (context) => sl<HistoryBloc>(),
+        child: const HistoryPage(),
+      ),
     ),
   ],
 );

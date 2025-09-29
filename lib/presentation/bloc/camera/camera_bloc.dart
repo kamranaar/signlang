@@ -7,9 +7,13 @@ import '../../../domain/entities/camera_info.dart';
 import '../../../core/constants/app_constants.dart';
 import 'camera_event.dart';
 import 'camera_state.dart';
+import 'dart:typed_data';
+import 'package:image/image.dart' as img;
+import '../../../data/repositories/data_repository.dart';
 
 class CameraBloc extends Bloc<CameraEvent, CameraState> {
   final TfliteService _tfliteService;
+  final DataRepository _dataRepository = DataRepository();
   CameraController? _controller;
   List<CameraDescription> _cameras = [];
   int _currentCameraIndex = 0;
@@ -27,6 +31,10 @@ class CameraBloc extends Bloc<CameraEvent, CameraState> {
     on<StartInference>(_onStartInference);
     on<StopInference>(_onStopInference);
     on<ProcessCameraFrame>(_onProcessCameraFrame);
+    on<SaveCurrentPrediction>(_onSaveCurrentPrediction);
+    on<CorrectPrediction>(_onCorrectPrediction);
+    on<ClearPredictionHistory>(_onClearPredictionHistory);
+
   }
 
   Future<void> _onInitializeCamera(
@@ -326,17 +334,138 @@ if (_controller != null && _controller!.value.isInitialized) {
     try {
       final result = await _tfliteService.classifyImage(event.image);
       
+      // Save image for training data (every 10th prediction to avoid spam)
+      String? recognitionId;
+      if (DateTime.now().millisecond % 10 == 0) {
+        final imageBytes = await _convertCameraImageToBytes(event.image);
+        if (imageBytes != null) {
+          final imagePath = await _dataRepository.saveImageForTraining(
+            imageBytes, 
+            result.label,
+          );
+          
+          recognitionId = await _dataRepository.saveRecognition(
+            predictedLabel: result.label,
+            confidence: result.confidence,
+            imagePath: imagePath,
+          );
+          
+          await _dataRepository.saveTrainingData(
+            label: result.label,
+            imagePath: imagePath,
+            source: 'camera',
+          );
+        }
+      }
+      
       final currentState = state as CameraReady;
       emit(currentState.copyWith(
         lastPrediction: result.label,
         lastConfidence: result.confidence,
+        lastRecognitionId: recognitionId,
       ));
       
     } catch (e) {
-      // Handle inference errors silently to avoid overwhelming UI
-      print('Inference error: $e');
+      print('❌ Inference error: $e');
     }
   }
+
+  Future<List<int>?> _convertCameraImageToBytes(CameraImage cameraImage) async {
+    try {
+      // Convert YUV420 to RGB using same method as TfliteService
+      final rgbImage = _convertYUV420ToRGB(cameraImage);
+      
+      // Encode as JPEG
+      final jpegBytes = img.encodeJpg(rgbImage, quality: 85);
+      return jpegBytes;
+    } catch (e) {
+      print('⚠️ Image conversion error: $e');
+      return null;
+    }
+  }
+
+  img.Image _convertYUV420ToRGB(CameraImage cameraImage) {
+    final int width = cameraImage.width;
+    final int height = cameraImage.height;
+    final img.Image rgbImage = img.Image(width: width, height: height);
+    
+    try {
+      final yPlane = cameraImage.planes[0];
+      for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+          final int yIndex = y * yPlane.bytesPerRow + x;
+          if (yIndex < yPlane.bytes.length) {
+            final int gray = yPlane.bytes[yIndex];
+            rgbImage.setPixelRgb(x, y, gray, gray, gray);
+          }
+        }
+      }
+    } catch (e) {
+      print('⚠️ YUV conversion error: $e');
+    }
+    
+    return rgbImage;
+  }
+
+  Future<void> _onSaveCurrentPrediction(
+    SaveCurrentPrediction event,
+    Emitter<CameraState> emit,
+  ) async {
+    if (state is! CameraReady) return;
+    
+    try {
+      final currentState = state as CameraReady;
+      emit(currentState.copyWith(isSavingData: true));
+      
+      await _dataRepository.saveRecognition(
+        predictedLabel: event.label,
+        confidence: event.confidence,
+        userFeedback: 'manually_saved',
+      );
+      
+      emit(currentState.copyWith(isSavingData: false));
+      print('✅ Prediction saved manually: ${event.label}');
+      
+    } catch (e) {
+      print('❌ Error saving prediction: $e');
+      if (state is CameraReady) {
+        final currentState = state as CameraReady;
+        emit(currentState.copyWith(isSavingData: false));
+      }
+    }
+  }
+
+  Future<void> _onCorrectPrediction(
+    CorrectPrediction event,
+    Emitter<CameraState> emit,
+  ) async {
+    try {
+      await _dataRepository.correctRecognition(
+        recognitionId: event.recognitionId,
+        correctedLabel: event.correctedLabel,
+        feedback: event.feedback,
+      );
+      
+      print('✅ Prediction corrected: ${event.originalLabel} -> ${event.correctedLabel}');
+      
+    } catch (e) {
+      print('❌ Error correcting prediction: $e');
+    }
+  }
+
+  Future<void> _onClearPredictionHistory(
+    ClearPredictionHistory event,
+    Emitter<CameraState> emit,
+  ) async {
+    try {
+      await _dataRepository.clearOldRecognitions(keepDays: 0);
+      print('✅ Prediction history cleared');
+    } catch (e) {
+      print('❌ Error clearing history: $e');
+    }
+  }
+
+  
 
     @override
   Future<void> close() {

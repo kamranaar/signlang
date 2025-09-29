@@ -266,10 +266,7 @@ class _CameraPageState extends State<CameraPage> {
                       left: 20,
                       right: 20,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.black87,
                           borderRadius: BorderRadius.circular(12),
@@ -281,47 +278,73 @@ class _CameraPageState extends State<CameraPage> {
                             ),
                           ],
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.psychology,
-                              color: state.lastConfidence! > 0.7 
-                                  ? Colors.green 
-                                  : Colors.orange,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    state.lastPrediction!.toUpperCase(),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.psychology,
+                                  color: state.lastConfidence! > 0.7 
+                                      ? Colors.green 
+                                      : Colors.orange,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        state.lastPrediction!.toUpperCase(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Confidence: ${(state.lastConfidence! * 100).toStringAsFixed(1)}%',
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (state.isInferenceActive)
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.green,
+                                      shape: BoxShape.circle,
                                     ),
                                   ),
-                                  Text(
-                                    'Confidence: ${(state.lastConfidence! * 100).toStringAsFixed(1)}%',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 14,
+                              ],
+                            ),
+                            
+                            // Correction Button
+                            if (state.lastRecognitionId != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 12),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    onPressed: () => _showCorrectionDialog(
+                                      context,
+                                      state.lastRecognitionId!,
+                                      state.lastPrediction!,
+                                    ),
+                                    icon: const Icon(Icons.edit, size: 16),
+                                    label: const Text('Correct This'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.white,
+                                      side: const BorderSide(color: Colors.white38),
+                                      padding: const EdgeInsets.symmetric(vertical: 8),
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                            if (state.isInferenceActive)
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  color: Colors.green,
-                                  shape: BoxShape.circle,
                                 ),
                               ),
                           ],
@@ -343,6 +366,77 @@ class _CameraPageState extends State<CameraPage> {
         'Unknown camera state',
         style: TextStyle(color: Colors.white70),
       ),
+    );
+  }
+  void _showCorrectionDialog(BuildContext context, String recognitionId, String currentPrediction) {
+    final controller = TextEditingController();
+    final feedbackController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Correct Recognition'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Current prediction: $currentPrediction'),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: controller,
+                  decoration: const InputDecoration(
+                    labelText: 'Correct sign',
+                    hintText: 'Enter the correct sign...',
+                    border: OutlineInputBorder(),
+                  ),
+                  autofocus: true,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: feedbackController,
+                  decoration: const InputDecoration(
+                    labelText: 'Feedback (optional)',
+                    hintText: 'Why was this wrong?',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 2,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (controller.text.trim().isNotEmpty) {
+                  context.read<CameraBloc>().add(CorrectPrediction(
+                    recognitionId: recognitionId,
+                    originalLabel: currentPrediction,
+                    correctedLabel: controller.text.trim().toLowerCase(),
+                    feedback: feedbackController.text.trim().isEmpty 
+                        ? null 
+                        : feedbackController.text.trim(),
+                  ));
+                  Navigator.of(dialogContext).pop();
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('✅ Correction saved for training'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              },
+              child: const Text('Save Correction'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

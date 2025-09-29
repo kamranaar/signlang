@@ -34,6 +34,20 @@ class CameraControlsWidget extends StatelessWidget {
                   onPressed: () => context.read<CameraBloc>().add(SwitchCamera()),
                 ),
               
+              // Save Prediction Button
+              if (state is CameraReady && 
+                  state.lastPrediction != null && 
+                  state.lastConfidence != null)
+                _buildControlButton(
+                  icon: state.isSavingData ? Icons.hourglass_empty : Icons.save,
+                  label: state.isSavingData ? 'Saving...' : 'Save',
+                  onPressed: state.isSavingData ? null : () => 
+                    context.read<CameraBloc>().add(SaveCurrentPrediction(
+                      label: state.lastPrediction!,
+                      confidence: state.lastConfidence!,
+                    )),
+                ),
+              
               // Inference Toggle Button
               if (state is CameraReady)
                 _buildControlButton(

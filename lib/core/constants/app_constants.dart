@@ -47,4 +47,13 @@ class AppStrings {
   static const String inferenceInactive = 'AI Inactive';
   static const String prediction = 'Prediction';
   static const String confidence = 'Confidence';
+
+  // History & Data
+  static const String recognitionHistory = 'Recognition History';
+  static const String trainingData = 'Training Data';
+  static const String exportData = 'Export Data';
+  static const String correctThis = 'Correct This';
+  static const String saveCorrection = 'Save Correction';
+  static const String feedback = 'Feedback';
+  static const String noHistoryMessage = 'No history yet';
 }

@@ -41,3 +41,35 @@ class ProcessCameraFrame extends CameraEvent {
   @override
   List<Object> get props => [image];
 }
+
+class SaveCurrentPrediction extends CameraEvent {
+  final String label;
+  final double confidence;
+  
+  const SaveCurrentPrediction({
+    required this.label,
+    required this.confidence,
+  });
+  
+  @override
+  List<Object> get props => [label, confidence];
+}
+
+class CorrectPrediction extends CameraEvent {
+  final String recognitionId;
+  final String originalLabel;
+  final String correctedLabel;
+  final String? feedback;
+  
+  const CorrectPrediction({
+    required this.recognitionId,
+    required this.originalLabel,
+    required this.correctedLabel,
+    this.feedback,
+  });
+  
+  @override
+  List<Object?> get props => [recognitionId, originalLabel, correctedLabel, feedback];
+}
+
+class ClearPredictionHistory extends CameraEvent {}
