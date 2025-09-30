@@ -98,6 +98,25 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
               ),
+              
+              const SizedBox(height: 16),
+              
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => context.pushNamed('training'),
+                  icon: const Icon(Icons.model_training, size: 24),
+                  label: const Text(
+                    'Train Custom Model',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    foregroundColor: Colors.purple,
+                    side: const BorderSide(color: Colors.purple),
+                  ),
+                ),
+              ),
             ],
           ),
         ),

@@ -56,4 +56,14 @@ class AppStrings {
   static const String saveCorrection = 'Save Correction';
   static const String feedback = 'Feedback';
   static const String noHistoryMessage = 'No history yet';
+
+  // Training
+  static const String trainModel = 'Train Custom Model';
+  static const String modelTraining = 'Model Training';
+  static const String trainingInProgress = 'Training in Progress';
+  static const String trainingCompleted = 'Training Completed';
+  static const String startTraining = 'Start Training';
+  static const String stopTraining = 'Stop Training';
+  static const String checkReadiness = 'Check Readiness';
+  static const String modelAccuracy = 'Model Accuracy';
 }

@@ -7,6 +7,9 @@ import 'pages/home_page.dart';
 import 'pages/camera_page.dart';
 import 'pages/result_page.dart';
 import 'presentation/bloc/history/history_bloc.dart';
+import 'pages/training_page.dart';
+import '../presentation/bloc/training/training_bloc.dart';
+
 
 
 final GoRouter appRouter = GoRouter(
@@ -30,6 +33,14 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => BlocProvider(
         create: (context) => sl<HistoryBloc>(),
         child: const HistoryPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/training',
+      name: 'training',
+      builder: (context, state) => BlocProvider(
+        create: (context) => sl<TrainingBloc>(),
+        child: const TrainingPage(),
       ),
     ),
   ],

@@ -1,9 +1,13 @@
+// ignore_for_file: avoid_print
+
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as img;
+import 'package:path_provider/path_provider.dart';
 
 class RecognitionResult {
   final String label;
@@ -40,16 +44,23 @@ class TfliteService {
     try {
       print('🤖 Starting TensorFlow Lite initialization...');
       
-      // First check if model file exists
+      // First try to load custom model
+      final customLoaded = await loadCustomModel();
+      if (customLoaded) {
+        print('✅ Using custom trained model');
+        return;
+      }
+      
+      // Fall back to checking for asset model
       await _checkModelExists();
       
       if (!_modelExists) {
-        print('⚠️ Model file not found, using mock mode');
+        print('⚠️ No model found, using mock mode');
         await _initializeMockMode();
         return;
       }
 
-      // Try to load the actual model
+      // Try to load the asset model
       await _loadModel();
       await _loadLabels();
       
@@ -60,6 +71,50 @@ class TfliteService {
       print('❌ TensorFlow Lite initialization failed: $e');
       print('🔄 Falling back to mock mode...');
       await _initializeMockMode();
+    }
+  }
+
+  Future<bool> loadCustomModel() async {
+    try {
+      print('🤖 Attempting to load custom trained model...');
+      
+      // Check for custom model
+      final directory = await getApplicationDocumentsDirectory();
+      final customModelPath = '${directory.path}/trained_models/custom_sign_classifier.tflite';
+      final customLabelsPath = '${directory.path}/trained_models/custom_labels.txt';
+      
+      if (File(customModelPath).existsSync() && File(customLabelsPath).existsSync()) {
+        print('📁 Custom model found, loading...');
+        
+        // Dispose existing interpreter
+        _interpreter?.close();
+        _interpreter = null;
+        
+        // Load custom model
+        _interpreter = await Interpreter.fromFile(File(customModelPath));
+        
+        // Load custom labels
+        final labelsContent = await File(customLabelsPath).readAsString();
+        _labels = labelsContent
+            .split('\n')
+            .map((label) => label.trim())
+            .where((label) => label.isNotEmpty)
+            .toList();
+        
+        _isInitialized = true;
+        _modelExists = true;
+        
+        print('✅ Custom model loaded successfully');
+        print('🏷️ Custom labels: $_labels');
+        
+        return true;
+      }
+      
+      return false;
+      
+    } catch (e) {
+      print('❌ Failed to load custom model: $e');
+      return false;
     }
   }
 
